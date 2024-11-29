@@ -17,27 +17,38 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController textController = TextEditingController();
 
   //open dialog box to add note 
-  void openNoteBox(){
-    showDialog(context: context, builder: (context) => AlertDialog(
+  void openNoteBox( [String? docID]){
+    showDialog(
+      context: context, 
+      builder: (context) => AlertDialog(
+      //text user input
       content: TextField(
-        //text user input
         controller: textController,
       ),
       actions: [
         //button to saver
-        ElevatedButton(onPressed: () {
-    if (textController.text.trim().isNotEmpty) {
+        ElevatedButton(
+          onPressed: () {
+            if (docID == null){
+              firestoreService.addNote(textController.text);
+            }
+
+            else{
+              firestoreService.updateNote(docID, textController.text);
+            }
+
+          if (textController.text.trim().isNotEmpty) {
       // saver note
-      firestoreService.addNote(textController.text.trim());
-      textController.clear();
-      Navigator.pop(context);
-    } else {
-      // show a message if user input is empty
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter some text!')),
-      );
-    }
-  },
+          
+          textController.clear();
+          Navigator.pop(context);
+        } else {
+          // show a message if user input is empty
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please enter some text!')),
+          );
+        }
+      },
   child: const Text("Add"),)
       ],
     ));
@@ -57,7 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
               if (snapshot.hasData) {
                 List noteList = snapshot.data!.docs;
 
-                return ListView.builder(
+                return ListView.builder( 
+                  itemCount: noteList.length, 
                   itemBuilder: (context, index) {
                     DocumentSnapshot document = noteList[index];
                     String docID = document.id;
@@ -68,6 +80,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     return ListTile(
                       title: Text(noteText),
+                      trailing: IconButton(
+                        onPressed: () => openNoteBox(docID),
+                        icon: const Icon(Icons.settings),
+                      ),
                     );
                   } ,
                 );
